@@ -14,6 +14,8 @@ The foundation of the pipeline is Amazon S3 (Simple Storage Service). A specific
 
 - **`enriched/`**: This folder is a designated output location for results from Amazon Athena queries. When we run analytical queries (e.g., "total sales per month"), the resulting summary tables or CSV files are stored here.
 
+<img width="1512" height="982" alt="Image" src="https://github.com/user-attachments/assets/df04c665-4c50-4746-8b13-320d774a81e5" />
+
 ## 2. Secure Service-to-Service Communication (IAM Roles) 🔐
 
 This pipeline involves multiple AWS services that need to interact (S3, Lambda, Glue, EC2). Instead of hardcoding access keys (a major security risk), we use IAM (Identity and Access Management) Roles. A role is a set of permissions that a service can "assume" to securely access other services.
@@ -23,6 +25,8 @@ This pipeline involves multiple AWS services that need to interact (S3, Lambda, 
 - **Glue Service Role**: This role allows the AWS Glue Crawler to access and scan the files within the `processed/` S3 folder. This is necessary for it to discover the data's schema.
 
 - **EC2 Instance Profile**: This role is attached to our web server. It gives the application running on the server (the Flask app) permission to interact with other AWS services, specifically to run queries on Amazon Athena and access S3 for query results.
+
+<img width="1512" height="982" alt="Image" src="https://github.com/user-attachments/assets/8faecc6d-8ac6-4258-a886-817bee5a70ed" />
 
 ## 3. Serverless Data Processing (Lambda Function) ⚙️
 
@@ -35,17 +39,31 @@ In this project, the **FilterAndProcessOrders** function's job is to:
 3. Process the data in memory. This could involve cleaning messy data, filtering out incomplete orders, or standardizing date formats.
 4. Write the new, clean data to a file in the `processed/` S3 folder.
 
+<img width="1512" height="982" alt="Image" src="https://github.com/user-attachments/assets/c1c1cc84-8702-4b9b-8aa8-05740c2ea2a5" />
+
 ## 4. Event-Driven Automation (S3 Trigger) ⚡
 
 This step makes the pipeline automated and event-driven. We configure an **S3 Event Notification** that acts as a "trigger."
 
 This trigger constantly watches the `raw/` folder in our S3 bucket. When it detects a new object (specifically, a `.csv` file) being created, it automatically invokes our **FilterAndProcessOrders** Lambda function, passing in the details of the file that just arrived. This setup means the moment new data is uploaded, the processing begins immediately without any manual intervention.
 
+<img width="1512" height="982" alt="Image" src="https://github.com/user-attachments/assets/7b765f0a-4a36-43ff-8d19-d925225fd09c" />
+
+# 
+After configuring the Lambda function and its S3 trigger, tested the pipeline by uploading the Orders.csv file to the raw/ folder of the S3 bucket. The action successfully triggered the Lambda function, which executed its processing logic. As a result, a new, cleaned CSV file appeared in the processed/ folder, confirming the automated workflow was successful.
+
+<img width="1512" height="982" alt="Image" src="https://github.com/user-attachments/assets/72e00bd8-87b0-4de5-8fdc-1e0b220f220e" />
+
+#
+
+
 ## 5. Data Discovery and Cataloging (Glue Crawler) 🕸️
 
 At this point, we have clean data sitting in the `processed/` S3 folder, but it's just a file. To query it using SQL, we need a formal "table" definition, or schema.
 
 An **AWS Glue Crawler** automates this. We point the crawler at our `processed/` folder. It scans the data, automatically infers the schema (e.g., "column 1 is a string, column 2 is an integer"), and creates a table definition in the **AWS Glue Data Catalog**. This catalog acts as a central metadata repository. The data itself doesn't move; the catalog just stores the metadata that points to the data's location in S3.
+
+<img width="1512" height="982" alt="Image" src="https://github.com/user-attachments/assets/05f365bc-4d3f-47c7-bf23-db7ba6872191" />
 
 ## 6. Serverless SQL Querying (Amazon Athena) 🔍
 
@@ -57,6 +75,8 @@ It uses the Glue Data Catalog to understand the schema and location of our proce
 - Aggregating revenue by month
 - Summarizing order statuses
 - Finding the average order value
+  
+<img width="1512" height="982" alt="Image" src="https://github.com/user-attachments/assets/06d608d8-6dd3-4509-a787-d78716545fec" />
 
 ## 7. The Web Dashboard (EC2 and Flask) 🖥️
 
@@ -76,6 +96,10 @@ When a user accesses the web page, the Flask application:
 4. Renders those results into an HTML page and sends it to the user's browser
 
 This provides a dynamic dashboard where the data is fetched in near real-time from our data pipeline.
+
+<img width="1512" height="982" alt="Image" src="https://github.com/user-attachments/assets/5fbc8c96-535e-400a-be04-2428b3673876" />
+
+<img width="1512" height="982" alt="Image" src="https://github.com/user-attachments/assets/4e351613-7258-4fd7-9d26-54573916ddbd" />
 
 ## Data Flow Summary
 
@@ -112,4 +136,3 @@ This provides a dynamic dashboard where the data is fetched in near real-time fr
 - **Cost-effective**: Pay only for resources used
 - **Secure**: IAM roles ensure proper access control
 - **Maintainable**: Clear separation of concerns between components
-# Cloud_Assignment3
